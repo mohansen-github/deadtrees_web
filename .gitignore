@@ -3,5 +3,12 @@
 *.tiff
 
 # Output files
-deadtreesmodels/web/outputs/
-deadtreesmodels/web/uploads/
+web/outputs/
+web/uploads/
+
+# Python
+__pycache__
+
+# Model data files
+data/
+deadtreesmodels/
