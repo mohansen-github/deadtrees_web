@@ -1,0 +1,7 @@
+# Large image files
+*.tif
+*.tiff
+
+# Output files
+deadtreesmodels/web/outputs/
+deadtreesmodels/web/uploads/

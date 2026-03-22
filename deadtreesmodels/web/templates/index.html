@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deadtree - Deadwood Detection</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        :root {
+            --bg-primary: #1a1a2e;
+            --bg-secondary: #16213e;
+            --bg-card: #1f2b47;
+            --accent: #4ecca3;
+            --accent-hover: #3db88f;
+            --text-primary: #e8e8e8;
+            --text-secondary: #a0a0b0;
+            --border: #2a3a5c;
+            --danger: #e74c3c;
+            --warning: #f39c12;
+            --success: #4ecca3;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        header {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 32px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        header .subtitle {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .model-status {
+            margin-left: auto;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .model-status.available {
+            background: rgba(78, 204, 163, 0.15);
+            color: var(--success);
+            border: 1px solid rgba(78, 204, 163, 0.3);
+        }
+
+        .model-status.missing {
+            background: rgba(231, 76, 60, 0.15);
+            color: var(--danger);
+            border: 1px solid rgba(231, 76, 60, 0.3);
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 400px 1fr;
+            height: calc(100vh - 65px);
+        }
+
+        .sidebar {
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border);
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+
+        .panel h2 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Drop zone */
+        .drop-zone {
+            border: 2px dashed var(--border);
+            border-radius: 8px;
+            padding: 30px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 12px;
+        }
+
+        .drop-zone:hover, .drop-zone.dragover {
+            border-color: var(--accent);
+            background: rgba(78, 204, 163, 0.05);
+        }
+
+        .drop-zone svg {
+            width: 40px;
+            height: 40px;
+            fill: var(--text-secondary);
+            margin-bottom: 10px;
+        }
+
+        .drop-zone p {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        .drop-zone .hint {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            opacity: 0.7;
+            margin-top: 4px;
+        }
+
+        .divider {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            margin: 8px 0;
+            position: relative;
+        }
+
+        .divider::before, .divider::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: 35%;
+            height: 1px;
+            background: var(--border);
+        }
+        .divider::before { left: 0; }
+        .divider::after { right: 0; }
+
+        .local-path-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        /* Inputs */
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 10px 12px;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input[type="text"]:focus, input[type="number"]:focus {
+            border-color: var(--accent);
+        }
+
+        .form-group {
+            margin-bottom: 14px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+
+        .form-group .help {
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+            opacity: 0.7;
+            margin-top: 4px;
+        }
+
+        /* Buttons */
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: var(--bg-primary);
+            width: 100%;
+        }
+
+        .btn-primary:hover { background: var(--accent-hover); }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .btn-cancel {
+            background: var(--danger);
+            color: white;
+            width: 100%;
+            margin-top: 8px;
+        }
+
+        .btn-cancel:hover { background: #c0392b; }
+
+        .btn-secondary {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        .btn-secondary:hover { border-color: var(--accent); }
+
+        .selected-file {
+            background: rgba(78, 204, 163, 0.1);
+            border: 1px solid rgba(78, 204, 163, 0.3);
+            border-radius: 6px;
+            padding: 10px 14px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            word-break: break-all;
+        }
+
+        .selected-file .clear {
+            cursor: pointer;
+            color: var(--text-secondary);
+            margin-left: 8px;
+            flex-shrink: 0;
+            font-size: 1.2rem;
+        }
+
+        .selected-file .clear:hover { color: var(--danger); }
+
+        /* Progress bar */
+        .progress-container {
+            display: none;
+            margin-bottom: 16px;
+        }
+
+        .progress-container.active { display: block; }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .progress-stage {
+            font-size: 0.85rem;
+            color: var(--warning);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .progress-pct {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        .progress-bar-bg {
+            background: var(--bg-primary);
+            border-radius: 6px;
+            height: 8px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+
+        .progress-bar-fill {
+            background: linear-gradient(90deg, var(--accent), #45b7d1);
+            height: 100%;
+            border-radius: 6px;
+            transition: width 0.5s ease;
+            width: 0%;
+        }
+
+        .progress-details {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .progress-details .elapsed {
+            font-variant-numeric: tabular-nums;
+        }
+
+        .progress-details .eta {
+            font-variant-numeric: tabular-nums;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(243, 156, 18, 0.3);
+            border-top-color: var(--warning);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            vertical-align: middle;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Status messages */
+        .status-bar {
+            padding: 14px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            margin-bottom: 12px;
+            display: none;
+        }
+
+        .status-bar.complete {
+            display: block;
+            background: rgba(78, 204, 163, 0.1);
+            border: 1px solid rgba(78, 204, 163, 0.3);
+            color: var(--success);
+        }
+
+        .status-bar.error {
+            display: block;
+            background: rgba(231, 76, 60, 0.1);
+            border: 1px solid rgba(231, 76, 60, 0.3);
+            color: var(--danger);
+        }
+
+        /* Results */
+        .results-info { font-size: 0.85rem; margin-bottom: 8px; }
+        .results-info span { color: var(--accent); font-weight: 600; }
+
+        .results-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .stat-box {
+            background: var(--bg-primary);
+            border-radius: 6px;
+            padding: 10px 12px;
+            text-align: center;
+        }
+
+        .stat-box .value {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .stat-box .label {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 2px;
+        }
+
+        .download-link {
+            display: inline-block;
+            color: var(--accent);
+            text-decoration: none;
+            font-size: 0.85rem;
+            margin-right: 14px;
+        }
+
+        .download-link:hover { text-decoration: underline; }
+
+        /* Map */
+        .map-container { position: relative; }
+
+        #map {
+            width: 100%;
+            height: 100%;
+            background: #0d1117;
+        }
+
+        .map-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: var(--text-secondary);
+            pointer-events: none;
+            z-index: 500;
+        }
+
+        .map-overlay svg {
+            width: 60px;
+            height: 60px;
+            fill: var(--border);
+            margin-bottom: 12px;
+        }
+
+        .map-overlay p { font-size: 0.95rem; }
+
+        /* File browser */
+        .file-browser {
+            display: none;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            max-height: 250px;
+            overflow-y: auto;
+            margin-top: 8px;
+        }
+
+        .file-browser.open { display: block; }
+
+        .file-browser-item {
+            padding: 8px 12px;
+            font-size: 0.82rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .file-browser-item:last-child { border-bottom: none; }
+        .file-browser-item:hover { background: rgba(78, 204, 163, 0.05); }
+        .file-browser-item .size { color: var(--text-secondary); font-size: 0.75rem; }
+        .file-browser-item.dir { color: var(--accent); }
+
+        /* Model warning */
+        .model-warning {
+            background: rgba(231, 76, 60, 0.1);
+            border: 1px solid rgba(231, 76, 60, 0.3);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+            font-size: 0.85rem;
+            color: var(--danger);
+            line-height: 1.5;
+        }
+
+        .model-warning a { color: var(--accent); }
+        .model-warning code {
+            background: rgba(0,0,0,0.3);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Deadtree</h1>
+        <span class="subtitle">Deadwood Detection in Aerial Imagery</span>
+        {% if model_available %}
+        <span class="model-status available">Model Ready</span>
+        {% else %}
+        <span class="model-status missing">Model Not Found</span>
+        {% endif %}
+    </header>
+
+    <div class="container">
+        <div class="sidebar">
+            {% if not model_available %}
+            <div class="model-warning">
+                <strong>Model weights not found.</strong><br>
+                Download from
+                <a href="https://drive.google.com/file/d/1ZvUkBNVtXFujHo_amGyhSXWnPiAc_VES/view" target="_blank">Google Drive</a>
+                and place the <code>.safetensors</code> file in the <code>data/</code> directory.
+            </div>
+            {% endif %}
+
+            <!-- File Input -->
+            <div class="panel">
+                <h2>Input Image</h2>
+
+                <div id="selectedFile" class="selected-file" style="display: none;">
+                    <span id="selectedFileName"></span>
+                    <span class="clear" onclick="clearFile()">&times;</span>
+                </div>
+
+                <div id="dropZone" class="drop-zone" onclick="document.getElementById('fileInput').click()">
+                    <svg viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>
+                    <p>Drop orthophoto here or click to upload</p>
+                    <p class="hint">Supports .tif / .tiff (GeoTIFF)</p>
+                </div>
+                <input type="file" id="fileInput" accept=".tif,.tiff" style="display: none;" onchange="handleFileSelect(event)">
+
+                <div class="divider">or use local path</div>
+
+                <div class="local-path-group">
+                    <input type="text" id="localPath" placeholder="C:\path\to\orthophoto.tif">
+                    <button class="btn-secondary" onclick="browseDirectory()">Browse</button>
+                </div>
+                <div id="fileBrowser" class="file-browser"></div>
+            </div>
+
+            <!-- Configuration -->
+            <div class="panel">
+                <h2>Configuration</h2>
+
+                <div class="form-group">
+                    <label>Probability Threshold</label>
+                    <input type="number" id="threshold" value="{{ config.probabilty_threshold }}" min="0" max="1" step="0.05">
+                    <p class="help">Higher = fewer but more confident detections</p>
+                </div>
+
+                <div class="form-group">
+                    <label>Minimum Polygon Area (m&sup2;)</label>
+                    <input type="number" id="minArea" value="{{ config.minimum_polygon_area }}" min="0" step="0.05">
+                    <p class="help">Removes small noise polygons below this area</p>
+                </div>
+
+                <div class="form-group">
+                    <label>Batch Size</label>
+                    <input type="number" id="batchSize" value="{{ config.batch_size }}" min="1" max="64" step="1">
+                    <p class="help">Reduce if you run out of GPU memory</p>
+                </div>
+            </div>
+
+            <!-- Inference / Progress -->
+            <div class="panel">
+                <h2>Inference</h2>
+
+                <!-- Progress bar (shown during inference) -->
+                <div id="progressContainer" class="progress-container">
+                    <div class="progress-header">
+                        <span id="progressStage" class="progress-stage">
+                            <span class="spinner"></span>
+                            <span id="progressStageText">Initializing...</span>
+                        </span>
+                        <span id="progressPct" class="progress-pct">0%</span>
+                    </div>
+                    <div class="progress-bar-bg">
+                        <div id="progressBarFill" class="progress-bar-fill"></div>
+                    </div>
+                    <div class="progress-details">
+                        <span id="progressCounts" class="counts"></span>
+                        <span id="progressElapsed" class="elapsed"></span>
+                        <span id="progressEta" class="eta"></span>
+                    </div>
+                </div>
+
+                <!-- Status messages -->
+                <div id="statusBar" class="status-bar"></div>
+
+                <button id="runBtn" class="btn-primary" onclick="runInference()" {% if not model_available %}disabled{% endif %}>
+                    Run Deadwood Detection
+                </button>
+                <button id="cancelBtn" class="btn-cancel" onclick="cancelJob()" style="display: none;">
+                    Cancel
+                </button>
+            </div>
+
+            <!-- Results -->
+            <div id="resultsPanel" class="panel" style="display: none;">
+                <h2>Results</h2>
+                <div id="resultsStats" class="results-stats"></div>
+                <div id="downloadLinks"></div>
+            </div>
+        </div>
+
+        <div class="map-container">
+            <div id="mapOverlay" class="map-overlay">
+                <svg viewBox="0 0 24 24"><path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/></svg>
+                <p>Run inference to see results on the map</p>
+            </div>
+            <div id="map"></div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // Initialize map
+        const map = L.map('map').setView([39.3722, -104.8561], 12);  // Castle Rock, CO
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors',
+            maxZoom: 22,
+        }).addTo(map);
+
+        let resultLayer = null;
+        let selectedFilePath = null;
+        let currentJobId = null;
+        let inferenceStartTime = null;
+        let elapsedTimer = null;
+
+        // Drop zone
+        const dropZone = document.getElementById('dropZone');
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragover');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            if (e.dataTransfer.files.length > 0) uploadFile(e.dataTransfer.files[0]);
+        });
+
+        function handleFileSelect(event) {
+            if (event.target.files[0]) uploadFile(event.target.files[0]);
+        }
+
+        async function uploadFile(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+            setStatus('', '');
+            showProgress('Uploading...', 0);
+
+            try {
+                const resp = await fetch('/upload', { method: 'POST', body: formData });
+                const data = await resp.json();
+
+                if (data.error) {
+                    hideProgress();
+                    setStatus('error', data.error);
+                    return;
+                }
+
+                selectedFilePath = data.path;
+                showSelectedFile(file.name);
+                hideProgress();
+            } catch (e) {
+                hideProgress();
+                setStatus('error', 'Upload failed: ' + e.message);
+            }
+        }
+
+        function showSelectedFile(name) {
+            document.getElementById('selectedFile').style.display = 'flex';
+            document.getElementById('selectedFileName').textContent = name;
+            dropZone.style.display = 'none';
+        }
+
+        function clearFile() {
+            selectedFilePath = null;
+            document.getElementById('selectedFile').style.display = 'none';
+            dropZone.style.display = 'block';
+            document.getElementById('fileInput').value = '';
+            document.getElementById('localPath').value = '';
+        }
+
+        // File browser
+        async function browseDirectory(overridePath) {
+            const path = overridePath || document.getElementById('localPath').value || '';
+            const browser = document.getElementById('fileBrowser');
+
+            try {
+                const resp = await fetch('/browse', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ directory: path }),
+                });
+                const data = await resp.json();
+
+                if (data.error) {
+                    setStatus('error', data.error);
+                    return;
+                }
+
+                browser.innerHTML = '';
+                browser.classList.add('open');
+
+                // Update the path input to show current location
+                if (data.current && data.current !== '__drives__') {
+                    document.getElementById('localPath').value = data.current;
+                } else if (data.current === '__drives__') {
+                    document.getElementById('localPath').value = '';
+                }
+
+                // Parent / drives navigation
+                if (data.parent) {
+                    const item = document.createElement('div');
+                    item.className = 'file-browser-item dir';
+                    item.innerHTML = '<span>.. (up)</span>';
+                    item.onclick = () => browseDirectory(data.parent);
+                    browser.appendChild(item);
+                }
+
+                // "My Computer" link when not already at drives view
+                if (data.current !== '__drives__') {
+                    const drivesItem = document.createElement('div');
+                    drivesItem.className = 'file-browser-item dir';
+                    drivesItem.innerHTML = '<span>[ All Drives ]</span>';
+                    drivesItem.onclick = () => browseDirectory('__drives__');
+                    browser.appendChild(drivesItem);
+                }
+
+                data.files.forEach(f => {
+                    const item = document.createElement('div');
+                    item.className = 'file-browser-item' + (f.is_dir ? ' dir' : '');
+                    item.innerHTML = `<span>${f.name}</span>${f.size_mb !== undefined ? `<span class="size">${f.size_mb} MB</span>` : ''}`;
+                    item.onclick = () => {
+                        if (f.is_dir) {
+                            browseDirectory(f.path);
+                        } else {
+                            selectedFilePath = f.path;
+                            showSelectedFile(f.name);
+                            browser.classList.remove('open');
+                        }
+                    };
+                    browser.appendChild(item);
+                });
+
+                if (data.files.length === 0) {
+                    browser.innerHTML += '<div class="file-browser-item">No .tif files or folders found</div>';
+                }
+            } catch (e) {
+                setStatus('error', 'Browse failed: ' + e.message);
+            }
+        }
+
+        // Progress display
+        function showProgress(stage, pct, counts, eta) {
+            const container = document.getElementById('progressContainer');
+            container.classList.add('active');
+            document.getElementById('progressStageText').textContent = stage;
+            document.getElementById('progressPct').textContent = Math.round(pct) + '%';
+            document.getElementById('progressBarFill').style.width = pct + '%';
+            document.getElementById('progressCounts').textContent = counts || '';
+            document.getElementById('progressEta').textContent = eta ? 'ETA: ' + eta : '';
+        }
+
+        function hideProgress() {
+            document.getElementById('progressContainer').classList.remove('active');
+            if (elapsedTimer) {
+                clearInterval(elapsedTimer);
+                elapsedTimer = null;
+            }
+        }
+
+        function formatDuration(seconds) {
+            const h = Math.floor(seconds / 3600);
+            const m = Math.floor((seconds % 3600) / 60);
+            const s = Math.floor(seconds % 60);
+            if (h > 0) return `${h}h ${m}m ${s}s`;
+            if (m > 0) return `${m}m ${s}s`;
+            return `${s}s`;
+        }
+
+        function startElapsedTimer() {
+            inferenceStartTime = Date.now();
+            if (elapsedTimer) clearInterval(elapsedTimer);
+            elapsedTimer = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - inferenceStartTime) / 1000);
+                document.getElementById('progressElapsed').textContent = 'Elapsed: ' + formatDuration(elapsed);
+            }, 1000);
+        }
+
+        // Status messages
+        function setStatus(type, message) {
+            const bar = document.getElementById('statusBar');
+            bar.className = 'status-bar';
+            if (!type || !message) {
+                bar.style.display = 'none';
+                return;
+            }
+            bar.classList.add(type);
+            bar.style.display = 'block';
+            bar.innerHTML = message;
+        }
+
+        // Cancel job
+        async function cancelJob() {
+            if (!currentJobId) return;
+            try {
+                await fetch(`/cancel/${currentJobId}`, { method: 'POST' });
+                document.getElementById('cancelBtn').disabled = true;
+                document.getElementById('cancelBtn').textContent = 'Cancelling...';
+            } catch (e) {
+                setStatus('error', 'Failed to cancel: ' + e.message);
+            }
+        }
+
+        // Run inference
+        async function runInference() {
+            const filepath = selectedFilePath || document.getElementById('localPath').value;
+            if (!filepath) {
+                setStatus('error', 'Please select or specify an input file first.');
+                return;
+            }
+
+            const btn = document.getElementById('runBtn');
+            btn.disabled = true;
+            btn.textContent = 'Running...';
+            setStatus('', '');
+            document.getElementById('resultsPanel').style.display = 'none';
+
+            try {
+                const resp = await fetch('/infer', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        filepath: filepath,
+                        probabilty_threshold: parseFloat(document.getElementById('threshold').value),
+                        minimum_polygon_area: parseFloat(document.getElementById('minArea').value),
+                        batch_size: parseInt(document.getElementById('batchSize').value),
+                    }),
+                });
+                const data = await resp.json();
+
+                if (data.error) {
+                    setStatus('error', data.error);
+                    btn.disabled = false;
+                    btn.textContent = 'Run Deadwood Detection';
+                    return;
+                }
+
+                currentJobId = data.job_id;
+                document.getElementById('cancelBtn').style.display = 'block';
+                document.getElementById('cancelBtn').disabled = false;
+                document.getElementById('cancelBtn').textContent = 'Cancel';
+                startElapsedTimer();
+                showProgress('Starting...', 0);
+                pollJobStatus(data.job_id);
+            } catch (e) {
+                setStatus('error', 'Failed to start inference: ' + e.message);
+                btn.disabled = false;
+                btn.textContent = 'Run Deadwood Detection';
+            }
+        }
+
+        function pollJobStatus(jobId) {
+            const stageLabels = {
+                'queued': 'Queued...',
+                'loading_model': 'Loading model weights...',
+                'running_inference': 'Running inference...',
+                'saving_results': 'Saving results...',
+            };
+
+            const poll = async () => {
+                try {
+                    const resp = await fetch(`/job/${jobId}`);
+                    if (!resp.ok) {
+                        hideProgress();
+                        setStatus('error', 'Job lost — the server may have restarted. Please re-run.');
+                        const btn = document.getElementById('runBtn');
+                        btn.disabled = false;
+                        btn.textContent = 'Run Deadwood Detection';
+                        return;
+                    }
+                    const data = await resp.json();
+
+                    if (data.status === 'complete') {
+                        hideProgress();
+                        document.getElementById('cancelBtn').style.display = 'none';
+
+                        const elapsed = data.result.elapsed_seconds;
+                        setStatus('complete',
+                            `Complete! Found ${data.result.polygon_count} deadwood polygons in ${formatDuration(elapsed)}.`
+                        );
+
+                        showResults(data.result, jobId);
+                        const btn = document.getElementById('runBtn');
+                        btn.disabled = false;
+                        btn.textContent = 'Run Deadwood Detection';
+                        return;
+                    }
+
+                    if (data.status === 'cancelled') {
+                        hideProgress();
+                        document.getElementById('cancelBtn').style.display = 'none';
+                        setStatus('error', 'Job cancelled.');
+                        const btn = document.getElementById('runBtn');
+                        btn.disabled = false;
+                        btn.textContent = 'Run Deadwood Detection';
+                        return;
+                    }
+
+                    if (data.status === 'error') {
+                        hideProgress();
+                        document.getElementById('cancelBtn').style.display = 'none';
+                        setStatus('error', 'Error: ' + data.error);
+                        const btn = document.getElementById('runBtn');
+                        btn.disabled = false;
+                        btn.textContent = 'Run Deadwood Detection';
+                        return;
+                    }
+
+                    // Update progress display
+                    const stage = stageLabels[data.status] || data.status;
+                    const progress = data.progress || {};
+                    const pct = progress.percent || 0;
+                    const desc = progress.description || stage;
+                    const counts = progress.counts || '';
+                    const eta = progress.eta || '';
+
+                    showProgress(desc || stage, pct, counts, eta);
+
+                    setTimeout(poll, 1500);
+                } catch (e) {
+                    setTimeout(poll, 3000);
+                }
+            };
+
+            poll();
+        }
+
+        async function showResults(result, jobId) {
+            const panel = document.getElementById('resultsPanel');
+            panel.style.display = 'block';
+
+            document.getElementById('resultsStats').innerHTML = `
+                <div class="stat-box">
+                    <div class="value">${result.polygon_count.toLocaleString()}</div>
+                    <div class="label">Polygons</div>
+                </div>
+                <div class="stat-box">
+                    <div class="value">${formatDuration(result.elapsed_seconds)}</div>
+                    <div class="label">Duration</div>
+                </div>
+            `;
+
+            document.getElementById('downloadLinks').innerHTML =
+                `<a class="download-link" href="/outputs/${result.gpkg_file}" download>Download GeoPackage</a>` +
+                `<a class="download-link" href="/outputs/${result.geojson_file}" download>Download GeoJSON</a>`;
+
+            document.getElementById('mapOverlay').style.display = 'none';
+
+            try {
+                const resp = await fetch(`/geojson/${jobId}`);
+                const geojson = await resp.json();
+
+                if (resultLayer) map.removeLayer(resultLayer);
+
+                resultLayer = L.geoJSON(geojson, {
+                    style: {
+                        color: '#e74c3c',
+                        weight: 1.5,
+                        fillColor: '#e74c3c',
+                        fillOpacity: 0.35,
+                    },
+                    onEachFeature: (feature, layer) => {
+                        layer.on('click', () => {
+                            layer.bindPopup(
+                                `<b>Deadwood</b><br>ID: ${feature.id || 'N/A'}`
+                            ).openPopup();
+                        });
+                    },
+                }).addTo(map);
+
+                map.fitBounds(L.latLngBounds(
+                    [result.bounds.south, result.bounds.west],
+                    [result.bounds.north, result.bounds.east]
+                ), { padding: [20, 20] });
+
+            } catch (e) {
+                console.error('Failed to load GeoJSON:', e);
+            }
+        }
+
+        // Enter key in local path
+        document.getElementById('localPath').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                const val = e.target.value;
+                if (val.toLowerCase().endsWith('.tif') || val.toLowerCase().endsWith('.tiff')) {
+                    selectedFilePath = val;
+                    showSelectedFile(val.split(/[/\\]/).pop());
+                } else {
+                    browseDirectory();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
