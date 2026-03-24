@@ -12,3 +12,6 @@ __pycache__
 # Model data files
 data/
 deadtreesmodels/
+
+.claude/settings.local.json
+.vscode/settings.json

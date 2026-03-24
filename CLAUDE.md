@@ -6,7 +6,7 @@ Author: Clemens Mosig (Universität Leipzig). MIT License.
 ## Project Structure
 
 ```
-deadtreesmodels/
+Deadtree/
 ├── common/                  # Shared GIS/raster utilities
 │   ├── __init__.py          # Re-exports everything from common.py
 │   └── common.py            # image_reprojector, mask_to_polygons, save_poly, reproject_polygons, filter_polygons_by_area, merge_polygons
@@ -22,7 +22,7 @@ deadtreesmodels/
 │   ├── uploads/             # Uploaded orthophoto files
 │   └── outputs/             # Inference output files (gpkg, geojson)
 ├── data/                    # Model weights directory (gitignored)
-│   └── segformer_b5_fold_0_epoch_74.safetensors  # Download from Google Drive
+│   └── segformer_b5_full_epoch_100.safetensors  # Download from Google Drive
 ├── infer_ortho.py           # Single-file inference script
 ├── infer_ortho_batch.py     # Batch inference from file list
 ├── tileinference.py         # Standalone tile inference script (legacy)
@@ -48,7 +48,7 @@ pip install -r requirements.txt
 
 # Run web frontend
 pip install flask
-cd deadtreesmodels && python -m web.app
+python -m web.app
 # Opens at http://localhost:5000
 
 # Run CLI inference (single file)

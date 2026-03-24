@@ -4,7 +4,12 @@
       "Bash(rm -rf deadtreesmodels)",
       "Bash(git clone:*)",
       "Bash(\"C:\\\\Users\\\\mhansen\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python313\\\\python.exe\" --version 2>&1)",
-      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5000/)"
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5000/)",
+      "Bash(tasklist)",
+      "WebFetch(domain:restor-foundation.github.io)",
+      "Bash(pip install:*)",
+      "Bash(py:*)",
+      "Bash(cp:*)"
     ]
   }
 }

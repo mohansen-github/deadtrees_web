@@ -20,6 +20,34 @@
             --success: #4ecca3;
         }
 
+        :root, [data-theme="dark"] {
+            --bg-primary: #1a1a2e;
+            --bg-secondary: #16213e;
+            --bg-card: #1f2b47;
+            --accent: #4ecca3;
+            --accent-hover: #3db88f;
+            --text-primary: #e8e8e8;
+            --text-secondary: #a0a0b0;
+            --border: #2a3a5c;
+            --danger: #e74c3c;
+            --warning: #f39c12;
+            --success: #4ecca3;
+        }
+
+        [data-theme="light"] {
+            --bg-primary: #f0f2f5;
+            --bg-secondary: #ffffff;
+            --bg-card: #ffffff;
+            --accent: #2a9d6e;
+            --accent-hover: #238558;
+            --text-primary: #1a1a2e;
+            --text-secondary: #5a5a6e;
+            --border: #d0d5dd;
+            --danger: #d63031;
+            --warning: #e17055;
+            --success: #2a9d6e;
+        }
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
@@ -69,9 +97,26 @@
             border: 1px solid rgba(231, 76, 60, 0.3);
         }
 
+        .theme-toggle {
+            background: none;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 5px 8px;
+            display: flex;
+            align-items: center;
+            transition: color 0.2s, border-color 0.2s;
+        }
+
+        .theme-toggle:hover {
+            color: var(--accent);
+            border-color: var(--accent);
+        }
+
         .container {
             display: grid;
-            grid-template-columns: 400px 1fr;
+            grid-template-columns: 400px auto 1fr;
             height: calc(100vh - 65px);
         }
 
@@ -97,6 +142,37 @@
             color: var(--accent);
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+        }
+
+        .panel h2::after {
+            content: '\25B2';
+            font-size: 0.6rem;
+            transition: transform 0.2s;
+        }
+
+        .panel.collapsed h2 {
+            margin-bottom: 0;
+        }
+
+        .panel.collapsed h2::after {
+            transform: rotate(180deg);
+        }
+
+        .panel-body {
+            transition: max-height 0.25s ease, opacity 0.2s ease;
+            overflow: hidden;
+        }
+
+        .panel.collapsed .panel-body {
+            max-height: 0 !important;
+            opacity: 0;
+            margin: 0;
+            padding: 0;
         }
 
         /* Drop zone */
@@ -393,6 +469,99 @@
 
         .download-link:hover { text-decoration: underline; }
 
+        /* Previous Results */
+        .prev-results-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .prev-result-item {
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 8px;
+        }
+
+        .prev-result-item .result-name {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            word-break: break-all;
+            margin-bottom: 8px;
+        }
+
+        .prev-result-layer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.78rem;
+            padding: 4px 0;
+        }
+
+        .prev-result-layer .layer-label {
+            color: var(--text-secondary);
+            min-width: 70px;
+        }
+
+        .prev-result-layer .layer-links {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .prev-result-layer .layer-links a {
+            color: var(--accent);
+            text-decoration: none;
+            font-size: 0.75rem;
+        }
+
+        .prev-result-layer .layer-links a:hover { text-decoration: underline; }
+
+        .prev-result-layer .size {
+            color: var(--text-secondary);
+            font-size: 0.7rem;
+            opacity: 0.7;
+        }
+
+        .prev-result-actions {
+            display: flex;
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .btn-view-map {
+            background: rgba(78, 204, 163, 0.15);
+            color: var(--accent);
+            border: 1px solid rgba(78, 204, 163, 0.3);
+            padding: 4px 10px;
+            font-size: 0.75rem;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .btn-view-map:hover { background: rgba(78, 204, 163, 0.25); }
+
+        .btn-delete-result {
+            background: rgba(231, 76, 60, 0.1);
+            color: var(--danger);
+            border: 1px solid rgba(231, 76, 60, 0.2);
+            padding: 4px 10px;
+            font-size: 0.75rem;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: auto;
+        }
+
+        .btn-delete-result:hover { background: rgba(231, 76, 60, 0.2); }
+
+        .prev-results-empty {
+            color: var(--text-secondary);
+            font-size: 0.82rem;
+            text-align: center;
+            padding: 16px;
+        }
+
         /* Map */
         .map-container { position: relative; }
 
@@ -461,6 +630,167 @@
             line-height: 1.5;
         }
 
+        .model-select-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .model-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: border-color 0.2s;
+            font-size: 0.85rem;
+        }
+
+        .model-option:has(input:checked) {
+            border-color: var(--accent);
+            background: rgba(78, 204, 163, 0.05);
+        }
+
+        .model-option:has(input:disabled) {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .model-option input[type="checkbox"] {
+            accent-color: var(--accent);
+        }
+
+        .model-option-label {
+            flex: 1;
+        }
+
+        .model-option-status.missing {
+            font-size: 0.7rem;
+            color: var(--danger);
+            opacity: 0.8;
+        }
+
+        /* Dashboard panel */
+        .dashboard-panel {
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px 6px;
+            width: 56px;
+            overflow: hidden;
+            transition: width 0.25s ease;
+        }
+
+        .dashboard-panel.expanded {
+            width: 180px;
+            padding: 12px;
+        }
+
+        .dashboard-toggle {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 4px;
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            width: 100%;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .dashboard-toggle:hover { color: var(--accent); }
+
+        .dashboard-gauges {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            width: 100%;
+            align-items: center;
+        }
+
+        .gauge {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+
+        .gauge-ring {
+            position: relative;
+            width: 40px;
+            height: 40px;
+        }
+
+        .dashboard-panel.expanded .gauge-ring {
+            width: 64px;
+            height: 64px;
+        }
+
+        .gauge-ring svg {
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
+        }
+
+        .gauge-ring-bg {
+            fill: none;
+            stroke: var(--bg-primary);
+        }
+
+        .gauge-ring-fill {
+            fill: none;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 0.5s ease, stroke 0.5s ease;
+        }
+
+        .gauge-ring-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 0.6rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .dashboard-panel.expanded .gauge-ring-text {
+            font-size: 0.8rem;
+        }
+
+        .gauge-label {
+            font-size: 0.55rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 3px;
+            white-space: nowrap;
+        }
+
+        .dashboard-panel.expanded .gauge-label {
+            font-size: 0.65rem;
+        }
+
+        .gauge-detail {
+            font-size: 0.5rem;
+            color: var(--text-secondary);
+            margin-top: 1px;
+            white-space: nowrap;
+            display: none;
+        }
+
+        .dashboard-panel.expanded .gauge-detail {
+            display: block;
+            font-size: 0.6rem;
+        }
+
         .model-warning a { color: var(--accent); }
         .model-warning code {
             background: rgba(0,0,0,0.3);
@@ -479,6 +809,11 @@
         {% else %}
         <span class="model-status missing">Model Not Found</span>
         {% endif %}
+        <button id="themeToggle" class="theme-toggle" onclick="cycleTheme()" title="Toggle theme">
+            <svg id="themeIcon" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 18a8 8 0 0 1 0-16v16z"/>
+            </svg>
+        </button>
     </header>
 
     <div class="container">
@@ -494,91 +829,195 @@
 
             <!-- File Input -->
             <div class="panel">
-                <h2>Input Image</h2>
+                <h2 onclick="togglePanel(this)">Input Image</h2>
+                <div class="panel-body">
+                    <div id="selectedFile" class="selected-file" style="display: none;">
+                        <span id="selectedFileName"></span>
+                        <span class="clear" onclick="clearFile()">&times;</span>
+                    </div>
 
-                <div id="selectedFile" class="selected-file" style="display: none;">
-                    <span id="selectedFileName"></span>
-                    <span class="clear" onclick="clearFile()">&times;</span>
+                    <div id="dropZone" class="drop-zone" onclick="document.getElementById('fileInput').click()">
+                        <svg viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>
+                        <p>Drop orthophoto here or click to upload</p>
+                        <p class="hint">Supports .tif / .tiff (GeoTIFF)</p>
+                    </div>
+                    <input type="file" id="fileInput" accept=".tif,.tiff" style="display: none;" onchange="handleFileSelect(event)">
+
+                    <div class="divider">or use local path</div>
+
+                    <div class="local-path-group">
+                        <input type="text" id="localPath" placeholder="C:\path\to\orthophoto.tif">
+                        <button class="btn-secondary" onclick="browseDirectory()">Browse</button>
+                    </div>
+                    <div id="fileBrowser" class="file-browser"></div>
                 </div>
+            </div>
 
-                <div id="dropZone" class="drop-zone" onclick="document.getElementById('fileInput').click()">
-                    <svg viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>
-                    <p>Drop orthophoto here or click to upload</p>
-                    <p class="hint">Supports .tif / .tiff (GeoTIFF)</p>
+            <!-- Model Selection -->
+            <div class="panel">
+                <h2 onclick="togglePanel(this)">Model</h2>
+                <div class="panel-body">
+                    <div class="form-group">
+                        <label>Detection Type</label>
+                        <div class="model-select-group">
+                            <label class="model-option">
+                                <input type="checkbox" name="modelType" value="deadwood" checked {% if not model_available %}disabled{% endif %}>
+                                <span class="model-option-label">Deadwood Detection</span>
+                                {% if not model_available %}<span class="model-option-status missing">weights missing</span>{% endif %}
+                            </label>
+                            <label class="model-option">
+                                <input type="checkbox" name="modelType" value="treecover" {% if not tcd_available %}disabled{% endif %}>
+                                <span class="model-option-label">Tree Cover (TCD)</span>
+                                {% if not tcd_available %}<span class="model-option-status missing">tcd not installed</span>{% endif %}
+                            </label>
+                        </div>
+                    </div>
                 </div>
-                <input type="file" id="fileInput" accept=".tif,.tiff" style="display: none;" onchange="handleFileSelect(event)">
-
-                <div class="divider">or use local path</div>
-
-                <div class="local-path-group">
-                    <input type="text" id="localPath" placeholder="C:\path\to\orthophoto.tif">
-                    <button class="btn-secondary" onclick="browseDirectory()">Browse</button>
-                </div>
-                <div id="fileBrowser" class="file-browser"></div>
             </div>
 
             <!-- Configuration -->
-            <div class="panel">
-                <h2>Configuration</h2>
+            <div class="panel collapsed">
+                <h2 onclick="togglePanel(this)">Configuration</h2>
+                <div class="panel-body">
+                    <div class="form-group" id="thresholdGroup">
+                        <label>Probability Threshold</label>
+                        <input type="number" id="threshold" value="{{ config.probabilty_threshold }}" min="0" max="1" step="0.05">
+                        <p class="help">Higher = fewer but more confident detections</p>
+                    </div>
 
-                <div class="form-group">
-                    <label>Probability Threshold</label>
-                    <input type="number" id="threshold" value="{{ config.probabilty_threshold }}" min="0" max="1" step="0.05">
-                    <p class="help">Higher = fewer but more confident detections</p>
-                </div>
+                    <div class="form-group">
+                        <label>Minimum Polygon Area (m&sup2;)</label>
+                        <input type="number" id="minArea" value="{{ config.minimum_polygon_area }}" min="0" step="0.05">
+                        <p class="help">Removes small noise polygons below this area</p>
+                    </div>
 
-                <div class="form-group">
-                    <label>Minimum Polygon Area (m&sup2;)</label>
-                    <input type="number" id="minArea" value="{{ config.minimum_polygon_area }}" min="0" step="0.05">
-                    <p class="help">Removes small noise polygons below this area</p>
-                </div>
-
-                <div class="form-group">
-                    <label>Batch Size</label>
-                    <input type="number" id="batchSize" value="{{ config.batch_size }}" min="1" max="64" step="1">
-                    <p class="help">Reduce if you run out of GPU memory</p>
+                    <div class="form-group" id="batchSizeGroup">
+                        <label>Batch Size</label>
+                        <input type="number" id="batchSize" value="{{ config.batch_size }}" min="1" max="64" step="1">
+                        <p class="help">Reduce if you run out of GPU memory</p>
+                    </div>
                 </div>
             </div>
 
             <!-- Inference / Progress -->
             <div class="panel">
-                <h2>Inference</h2>
+                <h2 onclick="togglePanel(this)">Inference</h2>
 
-                <!-- Progress bar (shown during inference) -->
-                <div id="progressContainer" class="progress-container">
-                    <div class="progress-header">
-                        <span id="progressStage" class="progress-stage">
-                            <span class="spinner"></span>
-                            <span id="progressStageText">Initializing...</span>
-                        </span>
-                        <span id="progressPct" class="progress-pct">0%</span>
+                <div class="panel-body">
+                    <!-- Progress bar (shown during inference) -->
+                    <div id="progressContainer" class="progress-container">
+                        <div class="progress-header">
+                            <span id="progressStage" class="progress-stage">
+                                <span class="spinner"></span>
+                                <span id="progressStageText">Initializing...</span>
+                            </span>
+                            <span id="progressPct" class="progress-pct">0%</span>
+                        </div>
+                        <div class="progress-bar-bg">
+                            <div id="progressBarFill" class="progress-bar-fill"></div>
+                        </div>
+                        <div class="progress-details">
+                            <span id="progressCounts" class="counts"></span>
+                            <span id="progressElapsed" class="elapsed"></span>
+                            <span id="progressEta" class="eta"></span>
+                        </div>
                     </div>
-                    <div class="progress-bar-bg">
-                        <div id="progressBarFill" class="progress-bar-fill"></div>
-                    </div>
-                    <div class="progress-details">
-                        <span id="progressCounts" class="counts"></span>
-                        <span id="progressElapsed" class="elapsed"></span>
-                        <span id="progressEta" class="eta"></span>
-                    </div>
+
+                    <!-- Status messages -->
+                    <div id="statusBar" class="status-bar"></div>
+
+                    <button id="runBtn" class="btn-primary" onclick="runInference()">
+                        Run Detection
+                    </button>
+                    <button id="cancelBtn" class="btn-cancel" onclick="cancelJob()" style="display: none;">
+                        Cancel
+                    </button>
                 </div>
-
-                <!-- Status messages -->
-                <div id="statusBar" class="status-bar"></div>
-
-                <button id="runBtn" class="btn-primary" onclick="runInference()" {% if not model_available %}disabled{% endif %}>
-                    Run Deadwood Detection
-                </button>
-                <button id="cancelBtn" class="btn-cancel" onclick="cancelJob()" style="display: none;">
-                    Cancel
-                </button>
             </div>
 
             <!-- Results -->
             <div id="resultsPanel" class="panel" style="display: none;">
-                <h2>Results</h2>
-                <div id="resultsStats" class="results-stats"></div>
-                <div id="downloadLinks"></div>
+                <h2 onclick="togglePanel(this)">Results</h2>
+                <div class="panel-body">
+                    <div id="resultsStats" class="results-stats"></div>
+                    <div id="downloadLinks"></div>
+                </div>
+            </div>
+
+            <!-- Previous Results -->
+            <div class="panel">
+                <h2 onclick="togglePanel(this)">Previous Results</h2>
+                <div class="panel-body">
+                    <div id="prevResultsList" class="prev-results-list">
+                        <div class="prev-results-empty">Loading...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Dashboard -->
+        <div id="dashboardPanel" class="dashboard-panel">
+            <button class="dashboard-toggle" onclick="toggleDashboard()">SYS</button>
+            <div class="dashboard-gauges">
+                <div class="gauge">
+                    <div class="gauge-ring">
+                        <svg viewBox="0 0 36 36">
+                            <circle class="gauge-ring-bg" cx="18" cy="18" r="14" stroke-width="3.5"/>
+                            <circle id="cpuRing" class="gauge-ring-fill" cx="18" cy="18" r="14" stroke-width="3.5"
+                                stroke="var(--accent)" stroke-dasharray="87.96" stroke-dashoffset="87.96"/>
+                        </svg>
+                        <span id="cpuValue" class="gauge-ring-text">0%</span>
+                    </div>
+                    <span class="gauge-label">CPU</span>
+                </div>
+                <div class="gauge">
+                    <div class="gauge-ring">
+                        <svg viewBox="0 0 36 36">
+                            <circle class="gauge-ring-bg" cx="18" cy="18" r="14" stroke-width="3.5"/>
+                            <circle id="ramRing" class="gauge-ring-fill" cx="18" cy="18" r="14" stroke-width="3.5"
+                                stroke="#45b7d1" stroke-dasharray="87.96" stroke-dashoffset="87.96"/>
+                        </svg>
+                        <span id="ramValue" class="gauge-ring-text">0%</span>
+                    </div>
+                    <span class="gauge-label">RAM</span>
+                    <span id="ramDetail" class="gauge-detail"></span>
+                </div>
+                <div class="gauge" id="gpuGauge" style="display: none;">
+                    <div class="gauge-ring">
+                        <svg viewBox="0 0 36 36">
+                            <circle class="gauge-ring-bg" cx="18" cy="18" r="14" stroke-width="3.5"/>
+                            <circle id="gpuRing" class="gauge-ring-fill" cx="18" cy="18" r="14" stroke-width="3.5"
+                                stroke="var(--warning)" stroke-dasharray="87.96" stroke-dashoffset="87.96"/>
+                        </svg>
+                        <span id="gpuValue" class="gauge-ring-text">0%</span>
+                    </div>
+                    <span class="gauge-label">GPU</span>
+                    <span id="gpuDetail" class="gauge-detail"></span>
+                </div>
+                <div class="gauge" id="vramGauge" style="display: none;">
+                    <div class="gauge-ring">
+                        <svg viewBox="0 0 36 36">
+                            <circle class="gauge-ring-bg" cx="18" cy="18" r="14" stroke-width="3.5"/>
+                            <circle id="vramRing" class="gauge-ring-fill" cx="18" cy="18" r="14" stroke-width="3.5"
+                                stroke="#e74c3c" stroke-dasharray="87.96" stroke-dashoffset="87.96"/>
+                        </svg>
+                        <span id="vramValue" class="gauge-ring-text">0%</span>
+                    </div>
+                    <span class="gauge-label">VRAM</span>
+                    <span id="vramDetail" class="gauge-detail"></span>
+                </div>
+                <div class="gauge" id="gpuTempGauge" style="display: none;">
+                    <div class="gauge-ring">
+                        <svg viewBox="0 0 36 36">
+                            <circle class="gauge-ring-bg" cx="18" cy="18" r="14" stroke-width="3.5"/>
+                            <circle id="gpuTempRing" class="gauge-ring-fill" cx="18" cy="18" r="14" stroke-width="3.5"
+                                stroke="#45b7d1" stroke-dasharray="87.96" stroke-dashoffset="87.96"/>
+                        </svg>
+                        <span id="gpuTempValue" class="gauge-ring-text">0°</span>
+                    </div>
+                    <span class="gauge-label">GPU Temp</span>
+                    <span id="gpuTempDetail" class="gauge-detail"></span>
+                </div>
             </div>
         </div>
 
@@ -593,18 +1032,131 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // Initialize map
-        const map = L.map('map').setView([39.3722, -104.8561], 12);  // Castle Rock, CO
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        // Initialize map with layer control
+        const map = L.map('map').setView([39.3722, -104.8561], 12);
+
+        const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; OpenStreetMap contributors',
             maxZoom: 22,
-        }).addTo(map);
+        });
 
-        let resultLayer = null;
+        const satelliteLayer = L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+            attribution: '&copy; Google',
+            maxZoom: 22,
+        });
+
+        const hybridLayer = L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
+            attribution: '&copy; Google',
+            maxZoom: 22,
+        });
+
+        osmLayer.addTo(map);
+
+        const layerControl = L.control.layers({
+            'OpenStreetMap': osmLayer,
+            'Google Satellite': satelliteLayer,
+            'Google Hybrid': hybridLayer,
+        }, {}, { position: 'topright' }).addTo(map);
+
+        let resultLayers = {};  // keyed by model_type
         let selectedFilePath = null;
         let currentJobId = null;
+        let currentModelType = null;
         let inferenceStartTime = null;
         let elapsedTimer = null;
+
+        // Collapsible panels
+        function togglePanel(h2) {
+            h2.parentElement.classList.toggle('collapsed');
+        }
+
+        // System dashboard
+        const RING_CIRCUMFERENCE = 2 * Math.PI * 14; // ~87.96
+
+        function toggleDashboard() {
+            document.getElementById('dashboardPanel').classList.toggle('expanded');
+        }
+
+        function gaugeColor(pct) {
+            if (pct > 90) return '#e74c3c';
+            if (pct > 70) return '#f39c12';
+            return '#4ecca3';
+        }
+
+        function updateRing(ringId, valueId, detailId, pct, detail, baseColor) {
+            const ring = document.getElementById(ringId);
+            const offset = RING_CIRCUMFERENCE - (pct / 100) * RING_CIRCUMFERENCE;
+            ring.style.strokeDashoffset = offset;
+            ring.style.stroke = baseColor ? baseColor : gaugeColor(pct);
+
+            document.getElementById(valueId).textContent = Math.round(pct) + '%';
+            if (detailId && detail) {
+                document.getElementById(detailId).textContent = detail;
+            }
+        }
+
+        async function pollSystemStats() {
+            try {
+                const resp = await fetch('/system-stats');
+                const stats = await resp.json();
+
+                updateRing('cpuRing', 'cpuValue', null,
+                    stats.cpu_percent, null, null);
+
+                updateRing('ramRing', 'ramValue', 'ramDetail',
+                    stats.memory.percent,
+                    `${stats.memory.used_gb} / ${stats.memory.total_gb} GB`,
+                    '#45b7d1');
+
+                if (stats.gpu) {
+                    document.getElementById('gpuGauge').style.display = '';
+                    document.getElementById('vramGauge').style.display = '';
+
+                    const gpuUtil = stats.gpu.utilization !== null ? stats.gpu.utilization : 0;
+                    updateRing('gpuRing', 'gpuValue', 'gpuDetail',
+                        gpuUtil, stats.gpu.name, null);
+
+                    updateRing('vramRing', 'vramValue', 'vramDetail',
+                        stats.gpu.memory_percent,
+                        `${stats.gpu.memory_used_gb} / ${stats.gpu.memory_total_gb} GB`,
+                        '#e74c3c');
+
+                    if (stats.gpu.temp_c !== null) {
+                        document.getElementById('gpuTempGauge').style.display = '';
+                        // Scale: 0-100°C mapped to 0-100%
+                        const tempPct = Math.min(stats.gpu.temp_c, 100);
+                        const tempColor = tempPct > 85 ? '#e74c3c' : tempPct > 70 ? '#f39c12' : '#45b7d1';
+                        const ring = document.getElementById('gpuTempRing');
+                        const offset = RING_CIRCUMFERENCE - (tempPct / 100) * RING_CIRCUMFERENCE;
+                        ring.style.strokeDashoffset = offset;
+                        ring.style.stroke = tempColor;
+                        document.getElementById('gpuTempValue').textContent = stats.gpu.temp_c + '°';
+                        document.getElementById('gpuTempDetail').textContent = stats.gpu.temp_c + '°C';
+                    }
+                }
+            } catch (e) {
+                // Silently ignore stats errors
+            }
+        }
+
+        // Poll system stats every 2 seconds
+        pollSystemStats();
+        setInterval(pollSystemStats, 2000);
+
+        const layerStyles = {
+            deadwood: { color: '#e74c3c', fillColor: '#e74c3c', weight: 1.5, fillOpacity: 0.35 },
+            treecover: { color: '#27ae60', fillColor: '#27ae60', weight: 1.5, fillOpacity: 0.35 },
+        };
+
+        const layerLabels = {
+            deadwood: 'Deadwood',
+            treecover: 'Tree Cover',
+        };
+
+        function getSelectedModelTypes() {
+            const checked = document.querySelectorAll('input[name="modelType"]:checked');
+            return Array.from(checked).map(c => c.value);
+        }
 
         // Drop zone
         const dropZone = document.getElementById('dropZone');
@@ -738,14 +1290,14 @@
         }
 
         // Progress display
-        function showProgress(stage, pct, counts, eta) {
+        function showProgress(stage, pct, counts, etaClock) {
             const container = document.getElementById('progressContainer');
             container.classList.add('active');
             document.getElementById('progressStageText').textContent = stage;
             document.getElementById('progressPct').textContent = Math.round(pct) + '%';
             document.getElementById('progressBarFill').style.width = pct + '%';
             document.getElementById('progressCounts').textContent = counts || '';
-            document.getElementById('progressEta').textContent = eta ? 'ETA: ' + eta : '';
+            document.getElementById('progressEta').textContent = etaClock ? 'ETA: ' + etaClock : '';
         }
 
         function hideProgress() {
@@ -799,11 +1351,20 @@
             }
         }
 
-        // Run inference
+        // Run inference — runs selected models sequentially
+        let cancelled = false;
+        let completedResults = [];
+
         async function runInference() {
             const filepath = selectedFilePath || document.getElementById('localPath').value;
             if (!filepath) {
                 setStatus('error', 'Please select or specify an input file first.');
+                return;
+            }
+
+            const modelTypes = getSelectedModelTypes();
+            if (modelTypes.length === 0) {
+                setStatus('error', 'Please select at least one detection type.');
                 return;
             }
 
@@ -812,42 +1373,85 @@
             btn.textContent = 'Running...';
             setStatus('', '');
             document.getElementById('resultsPanel').style.display = 'none';
+            cancelled = false;
+            completedResults = [];
 
-            try {
-                const resp = await fetch('/infer', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
+            document.getElementById('cancelBtn').style.display = 'block';
+            document.getElementById('cancelBtn').disabled = false;
+            document.getElementById('cancelBtn').textContent = 'Cancel';
+            startElapsedTimer();
+
+            for (let i = 0; i < modelTypes.length; i++) {
+                if (cancelled) break;
+
+                const modelType = modelTypes[i];
+                currentModelType = modelType;
+                const modelLabel = layerLabels[modelType] || 'Detection';
+                const stepLabel = modelTypes.length > 1
+                    ? `[${i + 1}/${modelTypes.length}] ${modelLabel}`
+                    : modelLabel;
+
+                showProgress(`Starting ${stepLabel}...`, 0);
+
+                try {
+                    const body = {
                         filepath: filepath,
-                        probabilty_threshold: parseFloat(document.getElementById('threshold').value),
+                        model_type: modelType,
                         minimum_polygon_area: parseFloat(document.getElementById('minArea').value),
-                        batch_size: parseInt(document.getElementById('batchSize').value),
-                    }),
-                });
-                const data = await resp.json();
+                    };
+                    if (modelType === 'deadwood') {
+                        body.probabilty_threshold = parseFloat(document.getElementById('threshold').value);
+                        body.batch_size = parseInt(document.getElementById('batchSize').value);
+                    }
 
-                if (data.error) {
-                    setStatus('error', data.error);
-                    btn.disabled = false;
-                    btn.textContent = 'Run Deadwood Detection';
+                    const resp = await fetch('/infer', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(body),
+                    });
+                    const data = await resp.json();
+
+                    if (data.error) {
+                        setStatus('error', data.error);
+                        resetRunButton();
+                        return;
+                    }
+
+                    currentJobId = data.job_id;
+
+                    // Wait for this job to complete before starting the next
+                    const result = await waitForJob(data.job_id, stepLabel);
+                    if (!result) break;  // cancelled or error
+
+                    completedResults.push(result);
+                    await showResults(result.result, data.job_id);
+
+                } catch (e) {
+                    setStatus('error', 'Failed to start inference: ' + e.message);
+                    resetRunButton();
                     return;
                 }
-
-                currentJobId = data.job_id;
-                document.getElementById('cancelBtn').style.display = 'block';
-                document.getElementById('cancelBtn').disabled = false;
-                document.getElementById('cancelBtn').textContent = 'Cancel';
-                startElapsedTimer();
-                showProgress('Starting...', 0);
-                pollJobStatus(data.job_id);
-            } catch (e) {
-                setStatus('error', 'Failed to start inference: ' + e.message);
-                btn.disabled = false;
-                btn.textContent = 'Run Deadwood Detection';
             }
+
+            hideProgress();
+            document.getElementById('cancelBtn').style.display = 'none';
+
+            if (!cancelled && completedResults.length > 0) {
+                // Show combined summary
+                const totalPolygons = completedResults.reduce((sum, r) => sum + r.result.polygon_count, 0);
+                const totalTime = completedResults.reduce((sum, r) => sum + r.result.elapsed_seconds, 0);
+                const labels = completedResults.map(r => layerLabels[r.result.model_type].toLowerCase()).join(' + ');
+                setStatus('complete',
+                    `Complete! Found ${totalPolygons} polygons (${labels}) in ${formatDuration(totalTime)}.`
+                );
+                showCombinedResults(completedResults);
+            }
+
+            loadPreviousResults();
+            resetRunButton();
         }
 
-        function pollJobStatus(jobId) {
+        function waitForJob(jobId, stepLabel) {
             const stageLabels = {
                 'queued': 'Queued...',
                 'loading_model': 'Loading model weights...',
@@ -855,92 +1459,75 @@
                 'saving_results': 'Saving results...',
             };
 
-            const poll = async () => {
-                try {
-                    const resp = await fetch(`/job/${jobId}`);
-                    if (!resp.ok) {
-                        hideProgress();
-                        setStatus('error', 'Job lost — the server may have restarted. Please re-run.');
-                        const btn = document.getElementById('runBtn');
-                        btn.disabled = false;
-                        btn.textContent = 'Run Deadwood Detection';
-                        return;
+            return new Promise((resolve) => {
+                const poll = async () => {
+                    try {
+                        const resp = await fetch(`/job/${jobId}`);
+                        if (!resp.ok) {
+                            hideProgress();
+                            setStatus('error', 'Job lost — the server may have restarted. Please re-run.');
+                            resetRunButton();
+                            resolve(null);
+                            return;
+                        }
+                        const data = await resp.json();
+
+                        if (data.status === 'complete') {
+                            resolve(data);
+                            return;
+                        }
+
+                        if (data.status === 'cancelled') {
+                            cancelled = true;
+                            hideProgress();
+                            document.getElementById('cancelBtn').style.display = 'none';
+                            setStatus('error', 'Job cancelled.');
+                            resetRunButton();
+                            resolve(null);
+                            return;
+                        }
+
+                        if (data.status === 'error') {
+                            hideProgress();
+                            document.getElementById('cancelBtn').style.display = 'none';
+                            setStatus('error', 'Error: ' + data.error);
+                            resetRunButton();
+                            resolve(null);
+                            return;
+                        }
+
+                        // Update progress display
+                        const stage = stageLabels[data.status] || data.status;
+                        const progress = data.progress || {};
+                        const pct = progress.percent || 0;
+                        const desc = progress.description
+                            ? `${stepLabel}: ${progress.description}`
+                            : `${stepLabel}: ${stage}`;
+                        const counts = progress.counts || '';
+                        const etaClock = progress.eta_clock || '';
+
+                        showProgress(desc, pct, counts, etaClock);
+
+                        setTimeout(poll, 1500);
+                    } catch (e) {
+                        setTimeout(poll, 3000);
                     }
-                    const data = await resp.json();
+                };
 
-                    if (data.status === 'complete') {
-                        hideProgress();
-                        document.getElementById('cancelBtn').style.display = 'none';
+                poll();
+            });
+        }
 
-                        const elapsed = data.result.elapsed_seconds;
-                        setStatus('complete',
-                            `Complete! Found ${data.result.polygon_count} deadwood polygons in ${formatDuration(elapsed)}.`
-                        );
-
-                        showResults(data.result, jobId);
-                        const btn = document.getElementById('runBtn');
-                        btn.disabled = false;
-                        btn.textContent = 'Run Deadwood Detection';
-                        return;
-                    }
-
-                    if (data.status === 'cancelled') {
-                        hideProgress();
-                        document.getElementById('cancelBtn').style.display = 'none';
-                        setStatus('error', 'Job cancelled.');
-                        const btn = document.getElementById('runBtn');
-                        btn.disabled = false;
-                        btn.textContent = 'Run Deadwood Detection';
-                        return;
-                    }
-
-                    if (data.status === 'error') {
-                        hideProgress();
-                        document.getElementById('cancelBtn').style.display = 'none';
-                        setStatus('error', 'Error: ' + data.error);
-                        const btn = document.getElementById('runBtn');
-                        btn.disabled = false;
-                        btn.textContent = 'Run Deadwood Detection';
-                        return;
-                    }
-
-                    // Update progress display
-                    const stage = stageLabels[data.status] || data.status;
-                    const progress = data.progress || {};
-                    const pct = progress.percent || 0;
-                    const desc = progress.description || stage;
-                    const counts = progress.counts || '';
-                    const eta = progress.eta || '';
-
-                    showProgress(desc || stage, pct, counts, eta);
-
-                    setTimeout(poll, 1500);
-                } catch (e) {
-                    setTimeout(poll, 3000);
-                }
-            };
-
-            poll();
+        function resetRunButton() {
+            const btn = document.getElementById('runBtn');
+            btn.disabled = false;
+            btn.textContent = 'Run Detection';
         }
 
         async function showResults(result, jobId) {
-            const panel = document.getElementById('resultsPanel');
-            panel.style.display = 'block';
-
-            document.getElementById('resultsStats').innerHTML = `
-                <div class="stat-box">
-                    <div class="value">${result.polygon_count.toLocaleString()}</div>
-                    <div class="label">Polygons</div>
-                </div>
-                <div class="stat-box">
-                    <div class="value">${formatDuration(result.elapsed_seconds)}</div>
-                    <div class="label">Duration</div>
-                </div>
-            `;
-
-            document.getElementById('downloadLinks').innerHTML =
-                `<a class="download-link" href="/outputs/${result.gpkg_file}" download>Download GeoPackage</a>` +
-                `<a class="download-link" href="/outputs/${result.geojson_file}" download>Download GeoJSON</a>`;
+            const modelType = result.model_type || currentModelType || 'deadwood';
+            const modelLabel = layerLabels[modelType] || 'Detection';
+            const style = layerStyles[modelType] || layerStyles.deadwood;
 
             document.getElementById('mapOverlay').style.display = 'none';
 
@@ -948,23 +1535,25 @@
                 const resp = await fetch(`/geojson/${jobId}`);
                 const geojson = await resp.json();
 
-                if (resultLayer) map.removeLayer(resultLayer);
+                // Remove previous layer of same type from map and layer control
+                if (resultLayers[modelType]) {
+                    map.removeLayer(resultLayers[modelType]);
+                    layerControl.removeLayer(resultLayers[modelType]);
+                }
 
-                resultLayer = L.geoJSON(geojson, {
-                    style: {
-                        color: '#e74c3c',
-                        weight: 1.5,
-                        fillColor: '#e74c3c',
-                        fillOpacity: 0.35,
-                    },
+                resultLayers[modelType] = L.geoJSON(geojson, {
+                    style: style,
                     onEachFeature: (feature, layer) => {
                         layer.on('click', () => {
                             layer.bindPopup(
-                                `<b>Deadwood</b><br>ID: ${feature.id || 'N/A'}`
+                                `<b>${modelLabel}</b><br>ID: ${feature.id || 'N/A'}`
                             ).openPopup();
                         });
                     },
                 }).addTo(map);
+
+                // Add to layer control as a toggleable overlay
+                layerControl.addOverlay(resultLayers[modelType], modelLabel);
 
                 map.fitBounds(L.latLngBounds(
                     [result.bounds.south, result.bounds.west],
@@ -975,6 +1564,45 @@
                 console.error('Failed to load GeoJSON:', e);
             }
         }
+
+        function showCombinedResults(results) {
+            const panel = document.getElementById('resultsPanel');
+            panel.style.display = 'block';
+
+            let statsHtml = '';
+            let linksHtml = '';
+            for (const r of results) {
+                const modelType = r.result.model_type;
+                const label = layerLabels[modelType] || modelType;
+                statsHtml += `
+                    <div class="stat-box">
+                        <div class="value">${r.result.polygon_count.toLocaleString()}</div>
+                        <div class="label">${label} Polygons</div>
+                    </div>`;
+                linksHtml +=
+                    `<a class="download-link" href="/outputs/${r.result.gpkg_file}" download>${label} GeoPackage</a>` +
+                    `<a class="download-link" href="/outputs/${r.result.geojson_file}" download>${label} GeoJSON</a> `;
+            }
+            const totalTime = results.reduce((sum, r) => sum + r.result.elapsed_seconds, 0);
+            statsHtml += `
+                <div class="stat-box">
+                    <div class="value">${formatDuration(totalTime)}</div>
+                    <div class="label">Total Duration</div>
+                </div>`;
+
+            document.getElementById('resultsStats').innerHTML = statsHtml;
+            document.getElementById('downloadLinks').innerHTML = linksHtml;
+        }
+
+        // Show/hide deadwood-specific config based on checkbox state
+        document.querySelectorAll('input[name="modelType"]').forEach(cb => {
+            cb.addEventListener('change', () => {
+                const selected = getSelectedModelTypes();
+                const hasDeadwood = selected.includes('deadwood');
+                document.getElementById('thresholdGroup').style.display = hasDeadwood ? 'block' : 'none';
+                document.getElementById('batchSizeGroup').style.display = hasDeadwood ? 'block' : 'none';
+            });
+        });
 
         // Enter key in local path
         document.getElementById('localPath').addEventListener('keydown', (e) => {
@@ -988,6 +1616,158 @@
                 }
             }
         });
+
+        // Previous results management
+        async function loadPreviousResults() {
+            const container = document.getElementById('prevResultsList');
+            try {
+                const resp = await fetch('/list-outputs');
+                const data = await resp.json();
+
+                if (data.length === 0) {
+                    container.innerHTML = '<div class="prev-results-empty">No previous results found.</div>';
+                    return;
+                }
+
+                container.innerHTML = '';
+                for (const item of data) {
+                    const div = document.createElement('div');
+                    div.className = 'prev-result-item';
+
+                    let layersHtml = '';
+                    for (const [layer, formats] of Object.entries(item.layers)) {
+                        const label = layerLabels[layer] || layer;
+                        let linksHtml = '';
+                        if (formats.gpkg) {
+                            linksHtml += `<a href="/outputs/${formats.gpkg.filename}" download>GPKG</a>`;
+                            linksHtml += `<span class="size">(${formats.gpkg.size_mb} MB)</span>`;
+                        }
+                        if (formats.geojson) {
+                            linksHtml += `<a href="/outputs/${formats.geojson.filename}" download>GeoJSON</a>`;
+                            linksHtml += `<span class="size">(${formats.geojson.size_mb} MB)</span>`;
+                        }
+                        layersHtml += `
+                            <div class="prev-result-layer">
+                                <span class="layer-label">${label}</span>
+                                <span class="layer-links">${linksHtml}</span>
+                            </div>`;
+                    }
+
+                    const layers = Object.keys(item.layers);
+                    const viewButtons = layers.map(layer => {
+                        const label = layerLabels[layer] || layer;
+                        return `<button class="btn-view-map" onclick="loadPrevOnMap('${item.name}', '${layer}')">View ${label}</button>`;
+                    }).join('');
+
+                    div.innerHTML = `
+                        <div class="result-name">${item.name}</div>
+                        ${layersHtml}
+                        <div class="prev-result-actions">
+                            ${viewButtons}
+                            <button class="btn-delete-result" onclick="deletePrevResult('${item.name}')">Delete</button>
+                        </div>`;
+                    container.appendChild(div);
+                }
+            } catch (e) {
+                container.innerHTML = '<div class="prev-results-empty">Failed to load results.</div>';
+            }
+        }
+
+        async function loadPrevOnMap(baseName, layer) {
+            const filename = `${baseName}_${layer}.geojson`;
+            try {
+                const resp = await fetch(`/outputs/${encodeURIComponent(filename)}`);
+                if (!resp.ok) { setStatus('error', 'GeoJSON file not found.'); return; }
+                const geojson = await resp.json();
+
+                const style = layerStyles[layer] || layerStyles.deadwood;
+                const label = layerLabels[layer] || layer;
+
+                document.getElementById('mapOverlay').style.display = 'none';
+
+                if (resultLayers[layer]) {
+                    map.removeLayer(resultLayers[layer]);
+                    layerControl.removeLayer(resultLayers[layer]);
+                }
+
+                resultLayers[layer] = L.geoJSON(geojson, {
+                    style: style,
+                    onEachFeature: (feature, lyr) => {
+                        lyr.on('click', () => {
+                            lyr.bindPopup(`<b>${label}</b><br>ID: ${feature.id || 'N/A'}`).openPopup();
+                        });
+                    },
+                }).addTo(map);
+
+                layerControl.addOverlay(resultLayers[layer], label);
+                map.fitBounds(resultLayers[layer].getBounds(), { padding: [20, 20] });
+
+            } catch (e) {
+                setStatus('error', 'Failed to load GeoJSON: ' + e.message);
+            }
+        }
+
+        async function deletePrevResult(baseName) {
+            if (!confirm(`Delete all output files for "${baseName}"?`)) return;
+            try {
+                const resp = await fetch('/delete-output', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: baseName }),
+                });
+                const data = await resp.json();
+                if (data.error) {
+                    setStatus('error', data.error);
+                    return;
+                }
+                loadPreviousResults();
+            } catch (e) {
+                setStatus('error', 'Delete failed: ' + e.message);
+            }
+        }
+
+        // Load previous results on page load
+        loadPreviousResults();
+
+        // Theme switching: dark / light / system
+        const themeIcons = {
+            dark: '<path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z"/>',
+            light: '<path d="M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0-5v2m0 16v2m-7-9H3m18 0h-2m-2.05-6.36l-1.41 1.41M7.05 18.36l-1.41 1.41m0-12.73l1.41 1.41m9.9 9.9l1.41 1.42"/>',
+            system: '<path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 18a8 8 0 0 1 0-16v16z"/>',
+        };
+
+        function getSystemPrefersDark() {
+            return window.matchMedia('(prefers-color-scheme: dark)').matches;
+        }
+
+        function applyTheme(mode) {
+            const html = document.documentElement;
+            if (mode === 'system') {
+                html.setAttribute('data-theme', getSystemPrefersDark() ? 'dark' : 'light');
+            } else {
+                html.setAttribute('data-theme', mode);
+            }
+            // Update icon
+            document.getElementById('themeIcon').innerHTML = themeIcons[mode] || themeIcons.system;
+        }
+
+        function cycleTheme() {
+            const modes = ['dark', 'light', 'system'];
+            const current = localStorage.getItem('theme') || 'dark';
+            const next = modes[(modes.indexOf(current) + 1) % modes.length];
+            localStorage.setItem('theme', next);
+            applyTheme(next);
+        }
+
+        // Initialize theme
+        (function() {
+            const saved = localStorage.getItem('theme') || 'dark';
+            applyTheme(saved);
+            // Listen for system theme changes when in system mode
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+                if (localStorage.getItem('theme') === 'system') applyTheme('system');
+            });
+        })();
     </script>
 </body>
 </html>
