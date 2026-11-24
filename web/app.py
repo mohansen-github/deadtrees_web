@@ -3,6 +3,7 @@ Flask web frontend for Deadtree Models - Deadwood Detection in Aerial Imagery.
 Provides real-time progress tracking for long-running inference jobs.
 """
 
+import importlib.util
 import io
 import json
 import os
@@ -125,12 +126,8 @@ def check_model_available():
 
 
 def check_tcd_available():
-    """Check if the TCD pipeline package is installed."""
-    try:
-        import tcd_pipeline  # noqa: F401
-        return True
-    except ImportError:
-        return False
+    """Check if transformers, which loads the TCD tree cover model, is installed."""
+    return importlib.util.find_spec("transformers") is not None
 
 
 class CancelledError(Exception):
