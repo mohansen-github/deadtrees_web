@@ -3,6 +3,7 @@ import json
 import numpy as np
 import rasterio
 import torch
+from rasterio.windows import Window
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 from transformers import SegformerForSemanticSegmentation
@@ -26,6 +27,15 @@ TREE_CLASS = 1
 TILE_SIZE = 1024
 TILE_PADDING = 128
 
+# With "tile_averaging", predictions from tiles overlapping by half are blended
+# instead. The model often disagrees with itself between neighbouring tiles in
+# dense shrubs, which otherwise leaves hard tile edges in the result.
+AVERAGING_STRIDE = TILE_SIZE // 2
+AVERAGING_EDGE = TILE_SIZE // 4
+
+IMAGENET_MEAN = (0.485, 0.456, 0.406)
+IMAGENET_STD = (0.229, 0.224, 0.225)
+
 
 class TreeCoverInference:
     def __init__(self, config_path):
@@ -48,7 +58,7 @@ class TreeCoverInference:
             probabilities = torch.nn.functional.interpolate(
                 logits, size=images.shape[-2:], mode="bilinear", align_corners=False
             ).softmax(dim=1)
-            return (probabilities[:, TREE_CLASS] * 255).to(torch.uint8).cpu().numpy()
+            return (probabilities[:, TREE_CLASS] * 255).to(torch.uint8)
 
     def _predict_mask(self, dataset):
         """Runs tiled inference and returns a binary mask of the whole raster."""
@@ -67,7 +77,7 @@ class TreeCoverInference:
             if not valid.any():
                 continue
 
-            trees = (self._predict(images) > threshold) & valid
+            trees = (self._predict(images).cpu().numpy() > threshold) & valid
 
             for i in range(trees.shape[0]):
                 col_off = int(windows["col_off"][i])
@@ -87,6 +97,84 @@ class TreeCoverInference:
                 mask[miny:maxy, minx:maxx] = trees[
                     i, top : top + (maxy - miny), left : left + (maxx - minx)
                 ]
+
+        return mask
+
+    def _predict_mask_averaged(self, src):
+        """
+        Like _predict_mask, but blends overlapping tiles. Works through the raster
+        one row of tiles at a time so that only that row is held in memory.
+        """
+        stride, edge = AVERAGING_STRIDE, AVERAGING_EDGE
+        batch_size = self.config.get("batch_size", 2)
+        threshold = self.config["tree_cover_threshold"]
+
+        # the raster is padded by `edge` on each side; rows are in raster pixels
+        # and cols are in padded pixels
+        rows = list(range(-edge, src.height - edge, stride))
+        cols = list(range(0, src.width, stride))
+        padded_width = cols[-1] + TILE_SIZE
+
+        window = np.hanning(TILE_SIZE + 2)[1:-1]
+        weight = torch.tensor(
+            np.outer(window, window) + 1e-3, dtype=torch.float32, device=self.device
+        )
+        mean = torch.tensor(IMAGENET_MEAN, device=self.device).view(1, 3, 1, 1)
+        std = torch.tensor(IMAGENET_STD, device=self.device).view(1, 3, 1, 1)
+
+        total = torch.zeros((TILE_SIZE, padded_width), device=self.device)
+        weights = torch.zeros_like(total)
+        mask = np.zeros((src.height, src.width), dtype=np.uint8)
+
+        image = np.zeros((3, TILE_SIZE, padded_width), dtype=np.uint8)
+        valid = np.zeros((TILE_SIZE, padded_width), dtype=bool)
+
+        def read_rows(start, stop):
+            """Fills rows start..stop of the current strip from the raster."""
+            image[:, start:stop] = 0
+            valid[start:stop] = False
+            top, bottom = max(row + start, 0), min(row + stop, src.height)
+            if top >= bottom:
+                return
+            raster_window = Window(0, top, src.width, bottom - top)
+            strip = np.s_[top - row : bottom - row, edge : edge + src.width]
+            image[(slice(None), *strip)] = src.read((1, 2, 3), window=raster_window)
+            valid[strip] = src.dataset_mask(window=raster_window) == 255
+
+        with tqdm(total=len(rows) * len(cols), desc="tree cover inference") as progress:
+            for row in rows:
+                if row == rows[0]:
+                    read_rows(0, TILE_SIZE)
+                else:
+                    image[:, :-stride] = image[:, stride:].copy()
+                    valid[:-stride] = valid[stride:].copy()
+                    read_rows(TILE_SIZE - stride, TILE_SIZE)
+
+                for i in range(0, len(cols), batch_size):
+                    batch = cols[i : i + batch_size]
+                    # skip tiles that contain no image data
+                    tiles = [c for c in batch if valid[:, c : c + TILE_SIZE].any()]
+                    if tiles:
+                        pixels = np.stack([image[:, :, c : c + TILE_SIZE] for c in tiles])
+                        pixels = torch.from_numpy(pixels).to(self.device).float() / 255
+                        confidence = self._predict((pixels - mean) / std)
+                        for c, tile in zip(tiles, confidence):
+                            total[:, c : c + TILE_SIZE] += tile * weight
+                            weights[:, c : c + TILE_SIZE] += weight
+                    progress.update(len(batch))
+
+                # rows that no later tile overlaps are final
+                done = TILE_SIZE if row == rows[-1] else stride
+                trees = (total[:done] / weights[:done].clamp(min=1e-6)) > threshold
+                trees = trees.cpu().numpy() & valid[:done]
+                top, bottom = max(row, 0), min(row + done, src.height)
+                mask[top:bottom] = trees[
+                    top - row : bottom - row, edge : edge + src.width
+                ]
+
+                for buffer in (total, weights):
+                    buffer[:-stride] = buffer[stride:].clone()
+                    buffer[-stride:] = 0
 
         return mask
 
@@ -124,10 +212,13 @@ class TreeCoverInference:
         vrt_src = image_reprojector(input_tif, min_res=resolution, max_res=resolution)
 
         try:
-            dataset = InferenceDataset(
-                image_src=vrt_src, tile_size=TILE_SIZE, padding=TILE_PADDING
-            )
-            mask = self._predict_mask(dataset)
+            if self.config.get("tile_averaging", False):
+                mask = self._predict_mask_averaged(vrt_src)
+            else:
+                dataset = InferenceDataset(
+                    image_src=vrt_src, tile_size=TILE_SIZE, padding=TILE_PADDING
+                )
+                mask = self._predict_mask(dataset)
 
             print("Postprocessing mask into polygons and filtering....")
             polygons = self._vectorize(mask, vrt_src)
